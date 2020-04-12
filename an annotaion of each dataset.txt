@@ -1,0 +1,39 @@
+-LSP-
+0 Right ankle
+1 Right knee
+2 Right hip
+3 Left hip
+4 Left knee
+5 Left ankle  -
+6 Right wrist
+7 Right elbow
+8 Right shoulder
+9 Left shoulder
+10 Left elbow
+11 Left wrist
+12 Neck
+13 Head top
+14 mean(Left hip, Right hip)
+
+-MPII-
+.x, .y - coordinates of a joint - id - joint id [//]: # "(
+0 - r ankle
+1 - r knee
+2 - r hip
+3 - l hip
+4 - l knee
+5 - l ankle  -
+6 - pelvis  - ∞Òπ›.
+7 - thorax - »‰∫Œ  -> ¿Ã∞≈ æ»ΩË¿Ω
+8 - upper neck
+9 - head top
+10 - r wrist
+11 - r elbow
+12 - r shoulder
+13 - l shoulder
+14 - l elbow
+15 - l wrist
+)"
+
+-MPI 3d-
+oint labels and the joint subsets used in various projects, refer to mpii_get_joint_set.
