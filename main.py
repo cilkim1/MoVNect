@@ -8,6 +8,7 @@ from utils import prepare_dirs_and_logger, save_config
 def main(config):
     prepare_dirs_and_logger(config)
     loader = get_loader(config.data_dir, config.dataset, config.batch_size)
+    loader_3d = get_3d_loader(config.batch_size)
     trainer = Trainer(config, loader)
     save_config(config)
     trainer.train()

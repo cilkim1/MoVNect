@@ -28,7 +28,7 @@ def get_loader(path, dataset, batch_size):
     return whole_queue
 
 
-def get_3d_loader(path, dataset, batch_size):
+def get_3d_loader(batch_size):
     '''
     # print(res['joints'])
     # mpii_image = glob.glob("{}/{}/mpii_human_pose_v1.tar/images/*.{}".format(path, dataset[0], "jpg"))  # mpii_human_pose_v1.tar\images

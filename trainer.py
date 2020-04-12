@@ -187,6 +187,7 @@ class Trainer(object):
     def preprocessing(self):
         with tf.compat.v1.variable_scope("Pre"):
             two_d_x, two_d_joint = self.data  # [B, 256, 256, 3]  [B, 256, 256, 15]
+            print(two_d_x, two_d_joint)
             two_d_x= self.norm(two_d_x)
             two_d_x = utils.nhwc_to_nchw(two_d_x)
             two_d_joint = utils.nhwc_to_nchw(two_d_joint)
