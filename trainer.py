@@ -73,6 +73,7 @@ class Trainer(object):
     def train(self):
         self.initial_iterator()
         self.init_fn(self.sess)
+        self.init_fn_1(self.sess)
         # teacher first, student last
         # 2d train first, 3d last
         for step in trange(self.start_step, self.max_step):
@@ -117,7 +118,7 @@ class Trainer(object):
 
     def build_model(self):
         with tf.compat.v1.variable_scope('preprocessing'):
-            two_d_x, two_d_gt  = self.preprocessing()
+            two_d_x, two_d_gt = self.preprocessing()
             x, gt = two_d_x, two_d_gt
 
         batch_input = utils.upscale_to(x, [224, 224], 'NCHW')
@@ -135,8 +136,7 @@ class Trainer(object):
                 s = utils.upscale_to_bil(s, [256, 256], 'NCHW')
                 t_h, t_l = tf.split(t, [self.j, -1], axis=1)  # heat for joint, x/y/z for joint
                 s_h, s_l = tf.split(s, [self.j, -1], axis=1)  # heat for joint, x/y/z for joint
-                gt_h, gt_l = two_d_gt, two_d_gt  # but data has only x/y... where is heat and z
-                print(t_h, t_l, s_h, s_l, gt_h, gt_l)
+                gt_h, gt_l = two_d_gt, tf.concat([two_d_gt, two_d_gt, two_d_gt], 1)  # but data has only where is heat and x/y/z for joint?
                 with tf.compat.v1.variable_scope("t_loss"):
                     self.t_hm_loss = tf.reduce_mean(tf.pow(tf.abs(t_h - gt_h), 2.))
                     self.t_lm_loss = tf.reduce_mean(tf.pow(tf.abs(t_l - gt_l), 2.))
@@ -145,14 +145,13 @@ class Trainer(object):
                     self.s_hm_loss = tf.reduce_mean(alpha * tf.pow(tf.abs(s_h - gt_h), 2.)
                                             + (1.-alpha) * tf.pow(tf.abs(s_h - t_h), 2.)
                     )
-                    self.s_lm_loss = tf.reduce_mean(alpha * tf.pow(gt_h * tf.abs(s_l - gt_l), 2.)
-                                             + (1. - alpha) * tf.pow(gt_h * tf.abs(s_l - t_l), 2.)
+                    self.s_lm_loss = tf.reduce_mean(alpha * tf.pow(tf.concat([gt_h, gt_h , gt_h], 1) * tf.abs(s_l - gt_l), 2.)
+                                             + (1. - alpha) * tf.pow(tf.concat([gt_h, gt_h , gt_h], 1) * tf.abs(s_l - t_l), 2.)
                                              )
-                    self.pd_loss = tf.reduce_mean()
             with tf.compat.v1.variable_scope("minimizer"):
-                self.two_d_teacher_optim = two_d_optimizer.minimize(self.t_hm_loss + self.t_lm_loss, var_list=self.self.t_var)
+                self.two_d_teacher_optim = two_d_optimizer.minimize(self.t_hm_loss + self.t_lm_loss, var_list=self.t_var)
                 self.two_d_studnet_optim = two_d_optimizer.minimize(self.s_hm_loss + self.s_lm_loss, var_list=self.s_var)
-                self.three_d_teachter_optim = three_d_optimizer.minimize(self.t_hm_loss + self.t_lm_loss, var_list=self.self.t_var)
+                self.three_d_teachter_optim = three_d_optimizer.minimize(self.t_hm_loss + self.t_lm_loss, var_list=self.t_var)
                 self.three_d_student_optim = three_d_optimizer.minimize(self.s_hm_loss + self.s_lm_loss, var_list=self.s_var)
 
         with tf.compat.v1.variable_scope("de_normal"):
@@ -187,7 +186,7 @@ class Trainer(object):
 
     def preprocessing(self):
         with tf.compat.v1.variable_scope("Pre"):
-            two_d_x, two_d_joint = self.data  # [B, 256, 256, 3]  [B, 256, 256, 14]
+            two_d_x, two_d_joint = self.data  # [B, 256, 256, 3]  [B, 256, 256, 15]
             two_d_x= self.norm(two_d_x)
             two_d_x = utils.nhwc_to_nchw(two_d_x)
             two_d_joint = utils.nhwc_to_nchw(two_d_joint)
@@ -227,10 +226,13 @@ class Trainer(object):
 
         self.init_fn_1 = slim.assign_from_checkpoint_fn(
             self.pre_dir + '/resnet_v1_50.ckpt', slim.get_model_variables('resnet_v1_50'))
-
+        '''
+        del which has no gradient
+        '''
+        # print(batch_list)
         x = utils.nhwc_to_nchw(feature)
-        x, feature = vnect(x, j)
-        return x, [batch_list, feature]
+        x, var = vnect(x, j)
+        return x, var
 
     def student(self, x, j):
         with tf.contrib.slim.arg_scope(mobilenet_v2.training_scope()):
@@ -244,4 +246,4 @@ class Trainer(object):
 
         x = utils.nhwc_to_nchw(mobilenet_feature)
         x, var = movnect(x, j)
-        return x, [batch_list, var]
+        return x, var

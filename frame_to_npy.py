@@ -3,8 +3,8 @@ import cv2
 import glob
 import numpy as np
 
-path = "D:/mpi_inf_3dhp/S1/Seq1/FGmasks"
-new_path = "D:/mpi_inf_3dhp/S1/Seq1/FGmasks_npy"
+path = "D:/mpi_inf_3dhp/S1/Seq1/imageSequence"
+new_path = "D:/mpi_inf_3dhp/S1/Seq1/imageSequence_npy"
 root = glob.glob("{}/*.{}".format(path, "avi"))
 if os.path.isdir(new_path) is False:
     os.mkdir(new_path)

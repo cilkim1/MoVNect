@@ -22,7 +22,8 @@ def vnect(x, j):
             non_j_x = slim.conv2d(x, 128, 4, 1, activation_fn=tf.nn.relu, data_format='NCHW', normalizer_fn=slim.batch_norm)
             j_x = slim.conv2d(x, 3 * j, 4, 1, activation_fn=None, data_format='NCHW', normalizer_fn=slim.batch_norm)
             dx, dy, dz = tf.split(j_x, 3, axis=1)
-            d_j = tf.concat([dx, dy, dz], axis=1)  # temptemptemptemptemp
+            d_j = tf.sqrt(tf.maximum(dx*dx+dy*dy+dz*dz, 0.))
+            # d_j = tf.concat([dx, dy, dz], axis=1)  # temptemptemptemptemp
             x = tf.concat([non_j_x, d_j, j_x], axis=1)
         with tf.compat.v1.variable_scope('lsat'):
             x = slim.conv2d(x, 128, 1, 1, activation_fn=tf.nn.relu, data_format='NCHW', normalizer_fn=slim.batch_norm)
@@ -49,7 +50,7 @@ def movnect(x, j):
             non_j_x = slim.conv2d(x, 128, 1, 1, activation_fn=tf.nn.relu, data_format='NCHW', normalizer_fn=slim.batch_norm)
             j_x = slim.conv2d(x, 3 * j, 1, 1, activation_fn=None, data_format='NCHW', normalizer_fn=slim.batch_norm)
             dx, dy, dz = tf.split(j_x, 3, axis=1)
-            d_j = tf.concat([dx, dy, dz], axis=1)  # temptemptemptemptemp
+            d_j = tf.abs(dx) + tf.abs(dy) + tf.abs(dz)
             x = tf.concat([non_j_x, d_j, j_x], axis=1)
         with tf.compat.v1.variable_scope('lsat'):
             x = slim.conv2d(x, 128, 1, 1, activation_fn=tf.nn.relu, data_format='NCHW', normalizer_fn=slim.batch_norm)

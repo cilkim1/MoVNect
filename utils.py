@@ -30,9 +30,9 @@ def prepare_dirs_and_logger(config):
             if config.load_path.startswith(config.dataset):
                 config.model_name = config.load_path
             else:
-                config.model_name = "{}_{}".format(config.dataset, config.load_path)
+                config.model_name = "_{}".format(config.dataset, config.load_path)
     else:
-        config.model_name = "{}_{}".format(config.dataset, get_time())
+        config.model_name = "_{}".format(get_time())
 
     if not hasattr(config, 'model_dir'):
         config.ckpt_dir = os.path.join(config.check_dir, config.model_name)

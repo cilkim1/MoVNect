@@ -41,16 +41,23 @@ def get_3d_loader(path, dataset, batch_size):
     FGmasks = glob.glob("{}/*".format('D:/mpi_inf_3dhp/S1/Seq1/FGmasks_npy'))
     imageSequence = glob.glob("{}/*".format('D:/mpi_inf_3dhp/S1/Seq1/imageSequence_npy'))
     res = sio.loadmat('{}/annot'.format('D:/mpi_inf_3dhp/S1/Seq1'))
+    '''
     for i in range(8):
         if i is 0:
+            mpi_2 = res['annot2'][0][0]
             mpi = res['annot3'][0][0]
         else:
             mpi = np.concatenate((mpi, res['annot3'][i][0]), axis=0)
-    # print(chair_mask.shape, fg_mask.shape, image_sequence.shape, mpi.shape)
-    whole_queue_0 = tf.data.Dataset.from_tensor_slices((ChairMasks, FGmasks, imageSequence, mpi))
+    '''
+    mpi_2 = res['annot2'][0][0]
+    mpi = res['annot3'][0][0]
+    chair_mask = np.transpose(np.load(ChairMasks[0]), (2, 0, 1))
+    fg_mask = np.transpose(np.load(FGmasks[0]), (2, 0, 1))
+    image_sequence = np.transpose(np.load(imageSequence[0]), (2, 0, 1))
+    whole_queue_0 = tf.data.Dataset.from_tensor_slices((chair_mask, fg_mask, image_sequence, mpi_2, mpi))
     whole_queue = tf.data.Dataset.zip(whole_queue_0)
     AUTOTUNE = tf.data.experimental.AUTOTUNE
-    whole_queue = whole_queue.shuffle(buffer_size=9)
+    whole_queue = whole_queue.shuffle(buffer_size=10000)
     whole_queue = whole_queue.repeat()
     whole_queue = whole_queue.map(preprocess_mpi, num_parallel_calls=AUTOTUNE)
     whole_queue = whole_queue.batch(batch_size)
@@ -58,16 +65,17 @@ def get_3d_loader(path, dataset, batch_size):
     return whole_queue
 
 
-def preprocess_mpi(ChairMasks, FGmasks, imageSequence, mpi):
-    c_mask = tf.numpy_function(read_npy_file, [ChairMasks], tf.float32)
-    f_mask = tf.numpy_function(read_npy_file, [FGmasks], tf.float32)
-    video = tf.numpy_function(read_npy_file, [imageSequence], tf.float32)
-    print(c_mask.shape, f_mask.shape, video.shape, mpi.shape)
-    return ChairMasks, FGmasks, imageSequence, mpi
+def preprocess_mpi(chair_mask, fg_mask, image_sequence, mpi_2, mpi):
+    mpi_2 = tf.reshape(mpi_2, [2, -1])
+    mpi = tf.reshape(mpi, [3, -1])
+    mpi_2 = joint_to_image(image_sequence, mpi_2/(256./2048.))
+    mpi = joint_to_image(image_sequence, mpi/(256./2048.))
+    print(chair_mask.shape, fg_mask.shape, image_sequence.shape, mpi_2.shape, mpi.shape)
+    return chair_mask, fg_mask, image_sequence, mpi_2, mpi
 
 
 def read_video_file(video):
-    file = cv2.VideoCapture(video)
+    file = np.load(video)
     return file.astype(np.float32)
 
 
@@ -87,6 +95,10 @@ def preprocess_lsp(image, joint):
     joint_image = tf.image.crop_to_bounding_box(joint_image, y, x, h, w)
     image = tf.image.resize(image, [256, 256])
     joint_image = tf.image.resize(joint_image, [256, 256])
+    joint_image = tf.concat([joint_image[:, :, 0:6],
+                             tf.expand_dims(0.5 * joint_image[:, :, 3] + joint_image[:, :, 4], -1),
+                             joint_image[:, :, 12:],joint_image[:, :, 6:12]], 2)
+    print(joint_image.shape)
     return image, joint_image
 
 
@@ -114,10 +126,24 @@ def joint_to_image(image, joint):
     joint = tf.cast(tf.math.round(joint), dtype=tf.float32)
     joint_image_y = tf.expand_dims(tf.cast(tf.range(tf.shape(image)[0]), dtype=tf.float32), -1)
     joint_image_y = tf.maximum(1. - tf.abs(joint_image_y - tf.expand_dims(joint[1], 0)), 0.)
-
     joint_image_x = tf.expand_dims(tf.cast(tf.range(tf.shape(image)[1]), dtype=tf.float32), -1)
     joint_image_x = tf.maximum(1. - tf.abs(joint_image_x - tf.expand_dims(joint[0], 0)), 0.)
+
     joint_image_x = tf.transpose(tf.expand_dims(joint_image_x, 0), [2, 0, 1])
     joint_image_y = tf.transpose(tf.expand_dims(joint_image_y, 1), [2, 0, 1])
     joint_image = tf.transpose(tf.matmul(joint_image_y, joint_image_x), [1, 2, 0])
-    return joint_image
+    return joint_image  # hit_map
+
+
+def joint_to_image(image, joint):
+    # input: [3, 14]
+    joint = tf.cast(tf.math.round(joint), dtype=tf.float32)
+    joint_image_y = tf.expand_dims(tf.cast(tf.range(tf.shape(image)[0]), dtype=tf.float32), -1)
+    joint_image_y = tf.maximum(1. - tf.abs(joint_image_y - tf.expand_dims(joint[1], 0)), 0.)
+    joint_image_x = tf.expand_dims(tf.cast(tf.range(tf.shape(image)[1]), dtype=tf.float32), -1)
+    joint_image_x = tf.maximum(1. - tf.abs(joint_image_x - tf.expand_dims(joint[0], 0)), 0.)
+
+    joint_image_x = tf.transpose(tf.expand_dims(joint_image_x, 0), [2, 0, 1])
+    joint_image_y = tf.transpose(tf.expand_dims(joint_image_y, 1), [2, 0, 1])
+    joint_image = tf.transpose(tf.matmul(joint_image_y, joint_image_x), [1, 2, 0])
+    return joint_image  # hit_map
