@@ -2,3 +2,14 @@
 *.ckpt
 
 *pre_trained*
+check/_0413_162321/events.out.tfevents.1586762904.DESKTOP-LRU1KMM
+check/_0412_235247/events.out.tfevents.1586703425.DESKTOP-LRU1KMM
+check/_0412_233616/events.out.tfevents.1586702196.DESKTOP-LRU1KMM
+*.DESKTOP-LRU1KMM
+*.pbtxt
+*.data-00000-of-00001
+*.index
+*.json
+logs/_0412_235247/checkpoint
+data_loader.py
+lsp_to_tfrecord.py
