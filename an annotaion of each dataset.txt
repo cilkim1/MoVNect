@@ -1,19 +1,19 @@
 -LSP-
-0 Right ankle
-1 Right knee
-2 Right hip
-3 Left hip
-4 Left knee
-5 Left ankle  -
-6 Right wrist
-7 Right elbow
-8 Right shoulder
-9 Left shoulder
-10 Left elbow
-11 Left wrist
-12 Neck
-13 Head top
-14 mean(Left hip, Right hip)
+0 Right ankle -> 0
+1 Right knee -> 1
+2 Right hip -> 2
+3 Left hip -> 3
+4 Left knee -> 4
+5 Left ankle  -> 5
+6 Right wrist ->9
+7 Right elbow ->10
+8 Right shoulder -> 11
+9 Left shoulder ->12
+10 Left elbow  -> 13
+11 Left wrist  -> 14
+12 Neck  -> 7
+13 Head top  -> 8
+14 mean(Left hip, Right hip) -> 6
 
 -MPII-
 .x, .y - coordinates of a joint - id - joint id [//]: # "(
@@ -35,5 +35,39 @@
 15 - l wrist
 )"
 
+MPI-3
+0(1) -> head top  -> 8
+1(2) -> Neck  -> 7
+2(3) -> r shoulder  -> 11
+3(4) -> r elbow  -> 10
+4(5) -> r wrist  -> 09
+5(6) -> l shoulder  -> 12
+6(7) -> l elbow  -> 13
+7(8) -> l wrist  -> 14
+8(9) -> r hip  -> 2
+9(10) -> r knee  -> 1
+10(11) -> r ankle  -> 0
+11(12) -> l hip  -> 3
+12(13) -> l knee -> 4
+13(14) -> l ankle  -> 5
+14(15) -> l pelvis  -> 3 + 2 -> 6
 -MPI 3d-
 oint labels and the joint subsets used in various projects, refer to mpii_get_joint_set.
+
+
+실제 순서
+0 - r ankle
+1 - r knee
+2 - r hip
+3 - l hip
+4 - l knee
+5 - l ankle  -
+6 - pelvis  - 골반.
+7 - upper neck
+8 - head top
+9 - r wrist
+10 - r elbow
+11 - r shoulder
+12 - l shoulder
+13 - l elbow
+14 - l wrist

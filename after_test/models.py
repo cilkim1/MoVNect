@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-import utils
+import after_test.utils as utils
 slim = tf.contrib.slim
 
 

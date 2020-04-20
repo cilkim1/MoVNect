@@ -7,7 +7,7 @@ try:
 except ImportError:
     from io import StringIO
 from tqdm import trange
-from models import *
+from after_test.models import *
 from tensorflow.contrib.slim.python.slim.nets import resnet_v1
 from tensorflow.contrib.slim.python.slim.nets.mobilenet import mobilenet_v2
 
@@ -138,10 +138,12 @@ class Trainer(object):
                 s_h, s_l = tf.split(s, [self.j, -1], axis=1)  # heat for joint, x/y/z for joint
                 gt_h, gt_l = two_d_gt, tf.concat([two_d_gt, two_d_gt, two_d_gt], 1)  # but data has only where is heat and x/y/z for joint?
                 with tf.compat.v1.variable_scope("t_loss"):
+                    t_h = tf.nn.softmax(t_h)
                     self.t_hm_loss = tf.reduce_mean(tf.pow(tf.abs(t_h - gt_h), 2.))
                     self.t_lm_loss = tf.reduce_mean(tf.pow(tf.abs(t_l - gt_l), 2.))
                 with tf.compat.v1.variable_scope("s_loss"):
                     alpha = 0.5
+                    s_h = tf.nn.softmax(s_h)
                     self.s_hm_loss = tf.reduce_mean(alpha * tf.pow(tf.abs(s_h - gt_h), 2.)
                                             + (1.-alpha) * tf.pow(tf.abs(s_h - t_h), 2.)
                     )
